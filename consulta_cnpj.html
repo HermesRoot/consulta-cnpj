@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta CNPJ</title>
+    <!-- Adicionando o CDN do SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 30px;
+            background: linear-gradient(135deg, #e0eafc, #cfdef3);
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            max-width: 600px;
+            margin: 0 auto;
+            transition: transform 0.2s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #34495e;
+            font-weight: 500;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 2px solid #dfe6e9;
+            border-radius: 6px;
+            font-size: 1em;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            border-color: #0984e3;
+            outline: none;
+            box-shadow: 0 0 5px rgba(9, 132, 227, 0.3);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #0984e3;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            cursor: pointer;
+            box-sizing: border-box;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #0652dd;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #dfe6e9;
+        }
+
+        .error {
+            color: #d63031;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .section h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .section h4 {
+            color: #34495e;
+            margin: 10px 0 5px;
+            font-size: 1em;
+        }
+
+        .section p {
+            margin: 5px 0;
+            color: #636e72;
+        }
+
+        .section ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .section ul li {
+            background-color: #f1f3f5;
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 6px;
+            border: 1px solid #dfe6e9;
+            transition: background-color 0.2s ease;
+        }
+
+        .section ul li:hover {
+            background-color: #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Consulta CNPJ</h1>
+        <label for="cnpj">Digite o CNPJ:</label>
+        <input type="text" id="cnpj" placeholder="Exemplo: 12.345.678/0001-90" />
+        <button onclick="consultarCnpj()">Consultar</button>
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        // Função para limpar o CNPJ (remove tudo que não for dígito)
+        function limparCnpj(cnpj) {
+            return cnpj.replace(/[^\d]/g, "");
+        }
+
+        async function consultarCnpj() {
+            const cnpjInput = document.getElementById("cnpj").value;
+            const resultDiv = document.getElementById("result");
+
+            if (!cnpjInput) {
+                resultDiv.innerHTML = "<p class='error'>Por favor, insira um CNPJ válido.</p>";
+                return;
+            }
+
+            // Limpa o CNPJ antes de enviar
+            const cnpj = limparCnpj(cnpjInput);
+            if (cnpj.length !== 14) {
+                resultDiv.innerHTML = "<p class='error'>CNPJ inválido. Deve conter 14 dígitos.</p>";
+                return;
+            }
+
+            // Mostra o popup de carregamento do SweetAlert2
+            Swal.fire({
+                title: "Carregando...",
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            const url = `http://localhost:5001/consulta-cnpj?cnpj=${cnpj}`;
+
+            try {
+                const response = await fetch(url);
+                if (response.ok) {
+                    const dados = await response.json();
+                    if (dados.erro) {
+                        resultDiv.innerHTML = `<p class='error'>${dados.erro}</p>`;
+                    } else {
+                        resultDiv.innerHTML = `
+                            <div class="section">
+                                <h3>Informações Gerais</h3>
+                                <p><strong>Razão Social:</strong> ${dados.razao_social}</p>
+                                <p><strong>Nome Fantasia:</strong> ${dados.nome_fantasia || 'Não informado'}</p>
+                                <p><strong>CNPJ:</strong> ${dados.cnpj}</p>
+                                <p><strong>Status:</strong> ${dados.descricao_situacao_cadastral}</p>
+                                <p><strong>Data de Abertura:</strong> ${dados.data_inicio_atividade}</p>
+                                <p><strong>Natureza Jurídica:</strong> ${dados.natureza_juridica}</p>
+                                <p><strong>Capital Social:</strong> R$ ${dados.capital_social.toLocaleString('pt-BR')}</p>
+                            </div>
+
+                            <div class="section">
+                                <h3>Endereço</h3>
+                                <p><strong>Logradouro:</strong> ${dados.logradouro}, ${dados.numero}</p>
+                                <p><strong>Complemento:</strong> ${dados.complemento || 'Não informado'}</p>
+                                <p><strong>Bairro:</strong> ${dados.bairro}</p>
+                                <p><strong>Município:</strong> ${dados.municipio} - ${dados.uf}</p>
+                                <p><strong>CEP:</strong> ${dados.cep}</p>
+                            </div>
+
+                            <div class="section">
+                                <h3>Atividades Econômicas</h3>
+                                <p><strong>CNAE Principal:</strong> ${dados.cnae_fiscal} - ${dados.cnae_fiscal_descricao}</p>
+                                <h4>CNAEs Secundários:</h4>
+                                <ul>
+                                    ${dados.cnaes_secundarios.map(cnae => `
+                                        <li>${cnae.codigo} - ${cnae.descricao}</li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+
+                            <div class="section">
+                                <h3>Sócios</h3>
+                                <ul>
+                                    ${dados.qsa.map(socio => `
+                                        <li>
+                                            <strong>Nome:</strong> ${socio.nome_socio}<br>
+                                            <strong>Qualificação:</strong> ${socio.qualificacao_socio}<br>
+                                            <strong>Data de Entrada:</strong> ${socio.data_entrada_sociedade}
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        `;
+                    }
+                } else {
+                    resultDiv.innerHTML = "<p class='error'>Erro ao consultar o CNPJ. Verifique o formato.</p>";
+                }
+            } catch (error) {
+                resultDiv.innerHTML = "<p class='error'>Erro ao fazer a requisição. Tente novamente mais tarde.</p>";
+            } finally {
+                // Fecha o popup de carregamento
+                Swal.close();
+            }
+        }
+
+        // Adiciona evento para consultar com Enter
+        document.getElementById("cnpj").addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                consultarCnpj();
+            }
+        });
+
+        // Máscara dinâmica no campo de entrada (visual apenas)
+        document.getElementById("cnpj").addEventListener("input", function(event) {
+            let value = event.target.value.replace(/[^\d]/g, ""); // Remove não dígitos
+            if (value.length > 14) value = value.slice(0, 14); // Limita a 14 dígitos
+            event.target.value = value
+                .replace(/(\d{2})(\d)/, "$1.$2")
+                .replace(/(\d{3})(\d)/, "$1.$2")
+                .replace(/(\d{3})(\d)/, "$1/$2")
+                .replace(/(\d{4})(\d)/, "$1-$2");
+        });
+    </script>
+</body>
+</html>
