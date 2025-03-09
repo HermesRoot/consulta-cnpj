@@ -3,7 +3,7 @@
 Este é um projeto simples para consulta de CNPJ utilizando Flask no backend e uma interface web no frontend.
 
 ## 🖥️ Captura de Tela
-![Screenshot do consulta-cep](https://raw.githubusercontent.com/HermesRoot/consulta-cep/refs/heads/main/screenshot.jpg)
+![Screenshot do consulta-cnpj](https://raw.githubusercontent.com/HermesRoot/consulta-cnpj/refs/heads/main/screenshot.jpg)
 
 ## 📌 Tecnologias Utilizadas
 
@@ -52,7 +52,7 @@ O servidor rodará em `http://localhost:5001`.
 
 ### 5️⃣ Executar o Frontend
 
-Basta abrir o arquivo `index.html` no navegador.
+Basta abrir o arquivo `consulta_cnpj.html` no navegador.
 
 ### 💡 Dica: Caso queira testar a API sem rodar o frontend, basta acessar no navegador:
 
